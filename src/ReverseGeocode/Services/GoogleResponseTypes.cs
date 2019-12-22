@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace ReverseGeocode.Services
 {
-    public class ReverseGeocodeResponse
+    internal class ReverseGeocodeResponse
     {
         public PlusCode plus_code { get; set; }
         public List<Result> results { get; set; }
@@ -10,14 +10,14 @@ namespace ReverseGeocode.Services
     }
 
 
-    public class PlusCode
+    internal class PlusCode
     {
         public string compound_code { get; set; }
         public string global_code { get; set; }
     }
 
 
-    public class Result
+    internal class Result
     {
         public List<AddressComponent> address_components { get; set; }
         public string formatted_address { get; set; }
@@ -27,7 +27,7 @@ namespace ReverseGeocode.Services
     }
 
 
-    public class AddressComponent
+    internal class AddressComponent
     {
         public string long_name { get; set; }
         public string short_name { get; set; }
@@ -35,7 +35,7 @@ namespace ReverseGeocode.Services
     }
 
 
-    public class Geometry
+    internal class Geometry
     {
         public Bounds bounds { get; set; }
         public Location location { get; set; }
@@ -44,14 +44,14 @@ namespace ReverseGeocode.Services
     }
 
 
-    public class Bounds
+    internal class Bounds
     {
         public Location northeast { get; set; }
         public Location southwest { get; set; }
     }
 
 
-    public class Location
+    internal class Location
     {
         public double lat { get; set; }
         public double lng { get; set; }

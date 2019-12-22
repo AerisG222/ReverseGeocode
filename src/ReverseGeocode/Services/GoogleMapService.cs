@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using RestSharp;
 
@@ -22,7 +23,7 @@ namespace ReverseGeocode.Services
         }
 
 
-        public async Task<ReverseGeocodeResponse> ReverseGeocodeAsync(double latitude, double longitude)
+        public async Task<ReverseGeocodeResult> ReverseGeocodeAsync(double latitude, double longitude)
         {
             var request = new RestRequest();
 
@@ -32,8 +33,7 @@ namespace ReverseGeocode.Services
 
             if(response.IsSuccessful)
             {
-                Console.WriteLine(response.Content);
-                return response.Data;
+                return BuildResult(response.Data);
             }
             else
             {
@@ -41,6 +41,45 @@ namespace ReverseGeocode.Services
             }
 
             return null;
+        }
+
+
+        ReverseGeocodeResult BuildResult(ReverseGeocodeResponse response)
+        {
+            var result = new ReverseGeocodeResult();
+
+            result.Status = response.status;
+
+            if(string.Equals(response.status, "OK", StringComparison.OrdinalIgnoreCase))
+            {
+                // order components from most detailed to least
+                var addressComponents = response.results
+                    .OrderByDescending(results => results.address_components.Count)
+                    .ToList();
+
+                result.FormattedAddress = addressComponents.FirstOrDefault()?.formatted_address;
+
+                var components = addressComponents.SelectMany(result => result.address_components);
+
+                foreach(var component in components)
+                {
+                    var key = BuildKey(component);
+                    var value = new ReverseGeocodeValue(component.long_name, component.short_name);
+
+                    if(!result.Details.ContainsKey(key))
+                    {
+                        result.Details.Add(key, value);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
+        string BuildKey(AddressComponent ac)
+        {
+            return string.Join(":", ac.types);
         }
     }
 }
