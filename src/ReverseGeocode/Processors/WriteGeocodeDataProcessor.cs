@@ -19,7 +19,7 @@ namespace ReverseGeocode.Processors
         }
 
 
-        public Task Process()
+        public Task ProcessAsync()
         {
             Console.WriteLine("WRITE - not implemented yet");
 

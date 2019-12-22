@@ -5,6 +5,6 @@ namespace ReverseGeocode.Processors
 {
     public interface IProcessor
     {
-        Task Process();
+        Task ProcessAsync();
     }
 }

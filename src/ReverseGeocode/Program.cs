@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using ReverseGeocode.Data;
 using ReverseGeocode.Processors;
-
+using ReverseGeocode.Services;
 
 namespace ReverseGeocode
 {
@@ -26,7 +26,7 @@ namespace ReverseGeocode
 
             try
             {
-                await processor.Process().ConfigureAwait(false);
+                await processor.ProcessAsync().ConfigureAwait(false);
             }
             catch(Exception ex)
             {
@@ -62,10 +62,10 @@ namespace ReverseGeocode
             }
 
             var db = new DatabaseReader(args[1]);
-            var apiKey = args[2];
+            var googleMaps = new GoogleMapService(args[2]);
             var outputFile = args[3];
 
-            return new GetGeocodeDataProcessor(db, apiKey, outputFile);
+            return new GetGeocodeDataProcessor(db, googleMaps, outputFile);
         }
 
 

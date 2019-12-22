@@ -10,7 +10,7 @@ namespace ReverseGeocode.Data
         }
 
 
-        public void WriteData()
+        public void WriteDataAsync()
         {
 
         }

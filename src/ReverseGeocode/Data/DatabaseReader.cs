@@ -14,7 +14,7 @@ namespace ReverseGeocode.Data
         }
 
 
-        public Task<IEnumerable<SourceRecord>> GetDataToGeocode()
+        public Task<IEnumerable<SourceRecord>> GetDataToGeocodeAsync()
         {
             var sql = "SELECT 'photo' AS RecordType, "
                     + "       id AS Id, "

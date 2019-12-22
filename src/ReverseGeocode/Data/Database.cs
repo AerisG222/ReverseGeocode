@@ -29,7 +29,7 @@ namespace ReverseGeocode.Data
                 throw new ArgumentNullException(nameof(queryData));
             }
 
-            using(var conn = await GetConnection())
+            using(var conn = await GetConnectionAsync())
             {
                 return await queryData(conn).ConfigureAwait(false);
             }
@@ -43,14 +43,14 @@ namespace ReverseGeocode.Data
                 throw new ArgumentNullException(nameof(executeStatement));
             }
 
-            using(var conn = await GetConnection())
+            using(var conn = await GetConnectionAsync())
             {
                 await executeStatement(conn).ConfigureAwait(false);
             }
         }
 
 
-        async Task<IDbConnection> GetConnection()
+        async Task<IDbConnection> GetConnectionAsync()
         {
             var conn = new NpgsqlConnection(_connString);
 
