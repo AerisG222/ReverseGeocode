@@ -22,9 +22,31 @@ namespace ReverseGeocode.Data
         }
 
 
-        Task<T> Query<T>(string sql)
+        protected async Task<T> RunAsync<T>(Func<IDbConnection, Task<T>> queryData)
         {
+            if(queryData == null)
+            {
+                throw new ArgumentNullException(nameof(queryData));
+            }
 
+            using(var conn = await GetConnection())
+            {
+                return await queryData(conn).ConfigureAwait(false);
+            }
+        }
+
+
+        protected async Task RunAsync(Func<IDbConnection, Task> executeStatement)
+        {
+            if(executeStatement == null)
+            {
+                throw new ArgumentNullException(nameof(executeStatement));
+            }
+
+            using(var conn = await GetConnection())
+            {
+                await executeStatement(conn).ConfigureAwait(false);
+            }
         }
 
 
@@ -32,7 +54,7 @@ namespace ReverseGeocode.Data
         {
             var conn = new NpgsqlConnection(_connString);
 
-            await conn.OpenAsync();
+            await conn.OpenAsync().ConfigureAwait(false);
 
             return conn;
         }

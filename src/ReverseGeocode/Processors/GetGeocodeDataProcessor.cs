@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using ReverseGeocode.Data;
 
 
@@ -20,9 +22,18 @@ namespace ReverseGeocode.Processors
         }
 
 
-        public void Process()
+        public async Task Process()
         {
-            Console.WriteLine("GET - not implemented yet");
+            var records = await _db.GetDataToGeocode().ConfigureAwait(false);
+
+            records = records.Take(10);
+
+            foreach(var rec in records)
+            {
+                Console.WriteLine($"{rec.RecordType} | {rec.Id} | {rec.Latitude} | {rec.Longitude}");
+            }
+
+            return;
         }
     }
 }

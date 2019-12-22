@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using ReverseGeocode.Data;
 
 
@@ -18,9 +19,11 @@ namespace ReverseGeocode.Processors
         }
 
 
-        public void Process()
+        public Task Process()
         {
             Console.WriteLine("WRITE - not implemented yet");
+
+            return Task.FromResult(0);
         }
     }
 }
