@@ -1,4 +1,7 @@
 using System;
+using System.Data;
+using System.Threading.Tasks;
+using Npgsql;
 
 
 namespace ReverseGeocode.Data
@@ -16,6 +19,22 @@ namespace ReverseGeocode.Data
             }
 
             _connString = connString;
+        }
+
+
+        Task<T> Query<T>(string sql)
+        {
+
+        }
+
+
+        async Task<IDbConnection> GetConnection()
+        {
+            var conn = new NpgsqlConnection(_connString);
+
+            await conn.OpenAsync();
+
+            return conn;
         }
     }
 }
