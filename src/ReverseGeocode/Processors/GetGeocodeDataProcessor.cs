@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CsvHelper;
 using ReverseGeocode.Data;
@@ -36,17 +35,24 @@ namespace ReverseGeocode.Processors
 
             var sourceRecords = await _db.GetDataToGeocodeAsync().ConfigureAwait(false);
 
-            sourceRecords = sourceRecords.Take(5);
+            Console.WriteLine($"Found { sourceRecords.Count() } to query");
 
             var results = await GetGeocodeResults(sourceRecords).ConfigureAwait(false);
 
+            Console.WriteLine($"Writing results to { _outputFile }");
+
             WriteResults(results);
+
+            Console.WriteLine("Completed.");
         }
 
 
         async Task<IEnumerable<Result>> GetGeocodeResults(IEnumerable<SourceRecord> records)
         {
             var list = new List<Result>();
+            var counter = 0;
+
+            Console.WriteLine("Querying records:");
 
             foreach(var rec in records)
             {
@@ -54,8 +60,12 @@ namespace ReverseGeocode.Processors
 
                 list.Add(new Result(rec, result));
 
-                // make sure we do not execute more than 50req/s per google maps limits
-                Thread.Sleep(1000 / 50);
+                if(counter % 200 == 0)
+                {
+                    Console.WriteLine($"    {counter} - most recent status: { result.Status }");
+                }
+
+                counter++;
             }
 
             return list;
