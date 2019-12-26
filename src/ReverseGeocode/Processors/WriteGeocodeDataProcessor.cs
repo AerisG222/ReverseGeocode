@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ReverseGeocode.Data;
 
@@ -21,7 +22,15 @@ namespace ReverseGeocode.Processors
 
         public Task ProcessAsync()
         {
-            Console.WriteLine("WRITE - not implemented yet");
+            var parser = new GeocodeFileParser();
+            var records = parser.Parse(_inputFile);
+
+            records = records.Where(r => r.PointsOfInterest.Count == 2).Take(10);
+
+            foreach(var r in records)
+            {
+                Console.WriteLine($"{r.RecordType} | {r.RecordId} | {r.FormattedAddress} | {r.PointsOfInterest.First().Type} | {r.PointsOfInterest.First().Name}");
+            }
 
             return Task.FromResult(0);
         }
