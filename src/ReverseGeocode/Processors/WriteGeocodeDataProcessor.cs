@@ -20,19 +20,17 @@ namespace ReverseGeocode.Processors
         }
 
 
-        public Task ProcessAsync()
+        public async Task ProcessAsync()
         {
             var parser = new GeocodeFileParser();
             var records = parser.Parse(_inputFile);
 
-            records = records.Where(r => r.PointsOfInterest.Count == 2).Take(10);
+            records = records.Where(r => string.Equals(r.Status, "OK", StringComparison.OrdinalIgnoreCase));
 
             foreach(var r in records)
             {
-                Console.WriteLine($"{r.RecordType} | {r.RecordId} | {r.FormattedAddress} | {r.PointsOfInterest.First().Type} | {r.PointsOfInterest.First().Name}");
+                await _db.WriteDataAsync(r);
             }
-
-            return Task.FromResult(0);
         }
     }
 }

@@ -16,8 +16,8 @@ namespace ReverseGeocode.Processors
         public string Country { get; set; }
         public string Locality { get; set; }
         public string Neighborhood { get; set; }
-        public string SublocalityLevel1 { get; set; }
-        public string SublocalityLevel2 { get; set; }
+        public string SubLocalityLevel1 { get; set; }
+        public string SubLocalityLevel2 { get; set; }
         public string PostalCode { get; set; }
         public string PostalCodeSuffix { get; set; }
         public string Premise { get; set; }

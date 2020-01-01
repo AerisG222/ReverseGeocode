@@ -131,13 +131,13 @@ namespace ReverseGeocode.Processors
 
                 if(header.StartsWith("political:sublocality:sublocality_level_1", StringComparison.OrdinalIgnoreCase))
                 {
-                    result.SublocalityLevel1 = reader.GetField(header);
+                    result.SubLocalityLevel1 = reader.GetField(header);
                     continue;
                 }
 
                 if(header.StartsWith("political:sublocality:sublocality_level_2", StringComparison.OrdinalIgnoreCase))
                 {
-                    result.SublocalityLevel2 = reader.GetField(header);
+                    result.SubLocalityLevel2 = reader.GetField(header);
                     continue;
                 }
 
