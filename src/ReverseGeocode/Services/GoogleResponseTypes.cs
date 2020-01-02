@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+
 namespace ReverseGeocode.Services
 {
     internal class ReverseGeocodeResponse
