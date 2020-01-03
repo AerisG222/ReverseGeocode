@@ -42,7 +42,7 @@ namespace ReverseGeocode
             Console.WriteLine("A small utility to acquire Reverse geocoding data for current photos and videos.");
             Console.WriteLine();
             Console.WriteLine("Usage:");
-            Console.WriteLine("    ReverseGeocode AUTO <db_conn_str>");
+            Console.WriteLine("    ReverseGeocode AUTO <db_conn_str> <google_maps_api_key> <archive_directory>");
             Console.WriteLine("  - or -");
             Console.WriteLine("    ReverseGeocode GET <db_conn_str> <google_maps_api_key> <output_file>");
             Console.WriteLine("  - or -");
