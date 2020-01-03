@@ -35,13 +35,25 @@ namespace ReverseGeocode.Processors
 
             var sourceRecords = await _db.GetDataToGeocodeAsync().ConfigureAwait(false);
 
+            if(sourceRecords.Count() == 0)
+            {
+                Console.WriteLine("No records require reverse geocoding, exiting.");
+                return;
+            }
+
             Console.WriteLine($"Found { sourceRecords.Count() } to query");
 
             var results = await GetGeocodeResults(sourceRecords).ConfigureAwait(false);
 
-            Console.WriteLine($"Writing results to { _outputFile }");
-
-            WriteResults(results);
+            if(results.Count() > 0)
+            {
+                Console.WriteLine($"Writing results to { _outputFile }");
+                WriteResults(results);
+            }
+            else
+            {
+                Console.WriteLine("No rec");
+            }
 
             Console.WriteLine("Completed.");
         }
