@@ -108,6 +108,7 @@ namespace ReverseGeocode.Processors
         {
             csvWriter.WriteField("Record Type");
             csvWriter.WriteField("Record Id");
+            csvWriter.WriteField("Is Override");
             csvWriter.WriteField("Latitude");
             csvWriter.WriteField("Longitude");
 
@@ -137,6 +138,7 @@ namespace ReverseGeocode.Processors
         {
             csvWriter.WriteField(result.Source.RecordType);
             csvWriter.WriteField(result.Source.Id);
+            csvWriter.WriteField(result.Source.IsOverride);
             csvWriter.WriteField(result.Source.Latitude);
             csvWriter.WriteField(result.Source.Longitude);
 

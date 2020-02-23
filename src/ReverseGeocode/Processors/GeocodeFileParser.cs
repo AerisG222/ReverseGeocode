@@ -70,6 +70,11 @@ namespace ReverseGeocode.Processors
                     continue;
                 }
 
+                if(string.Equals(header, "Is Override", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.IsOverride = bool.Parse(reader.GetField(header));
+                }
+
                 if(string.Equals(header, "Latitude", StringComparison.OrdinalIgnoreCase))
                 {
                     result.Latitude = double.Parse(reader.GetField(header));

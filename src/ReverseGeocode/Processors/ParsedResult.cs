@@ -6,6 +6,7 @@ namespace ReverseGeocode.Processors
     {
         public string RecordType { get; set; }
         public long RecordId { get; set; }
+        public bool IsOverride { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public string Status { get; set; }
