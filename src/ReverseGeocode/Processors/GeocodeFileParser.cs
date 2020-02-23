@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using CsvHelper;
 using Humanizer;
@@ -30,7 +31,7 @@ namespace ReverseGeocode.Processors
             var list = new List<ParsedResult>();
 
             using(var fileReader = new StreamReader(file))
-            using(var csvReader = new CsvReader(fileReader))
+            using(var csvReader = new CsvReader(fileReader, CultureInfo.CurrentCulture))
             {
                 csvReader.Read();
                 csvReader.ReadHeader();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,7 +93,7 @@ namespace ReverseGeocode.Processors
                 .OrderBy(x => x);
 
             using(var fileWriter = File.CreateText(_outputFile))
-            using(var csvWriter = new CsvWriter(fileWriter))
+            using(var csvWriter = new CsvWriter(fileWriter, CultureInfo.CurrentCulture))
             {
                 WriteHeaderRow(csvWriter, fields);
 
