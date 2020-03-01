@@ -8,7 +8,7 @@ namespace ReverseGeocode.Data
 {
     public abstract class Database
     {
-        string _connString;
+        readonly string _connString;
 
 
         public Database(string connString)
