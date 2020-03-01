@@ -133,8 +133,8 @@ namespace ReverseGeocode.Data
             var sql = $"UPDATE { result.RecordType }.gps_override "
                     + $"   SET has_been_reverse_geocoded = TRUE "
                     + $" WHERE { result.RecordType }_id = { result.RecordId } "
-                    + $"   AND ROUND(latitude::numeric, 5) = ROUND({ result.Latitude }::numeric, 5) "
-                    + $"   AND ROUND(longitude::numeric, 5) = ROUND({ result.Longitude }::numeric, 5) ";
+                    + $"   AND ROUND(latitude::numeric, 5) = ROUND(CAST({ result.Latitude } AS REAL)::numeric, 5) "
+                    + $"   AND ROUND(longitude::numeric, 5) = ROUND(CAST({ result.Longitude } AS REAL)::numeric, 5) ";
 
             try
             {
