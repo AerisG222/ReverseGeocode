@@ -97,12 +97,14 @@ namespace ReverseGeocode.Data
             var sql = $"INSERT INTO { result.RecordType }.point_of_interest "
                     + $"( "
                     + $"  { result.RecordType }_id, "
+                    + $"  is_override, "
                     + $"  poi_type, "
                     + $"  poi_name "
                     + $") "
                     + $"VALUES "
                     + $"( "
                     + $"  @RecordId, "
+                    + $"  @IsOverride, "
                     + $"  @PoiType, "
                     + $"  @PoiName "
                     + $") ";
@@ -113,6 +115,7 @@ namespace ReverseGeocode.Data
                 {
                     await RunAsync(conn => conn.ExecuteAsync(sql, new {
                         result.RecordId,
+                        result.IsOverride,
                         PoiType = poi.Type,
                         PoiName = poi.Name
                     }));
