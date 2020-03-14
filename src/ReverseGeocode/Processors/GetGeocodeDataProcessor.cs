@@ -42,14 +42,17 @@ namespace ReverseGeocode.Processors
                 return;
             }
 
-            Console.WriteLine($"Found { sourceRecords.Count() } to query");
+            var distinctCoordinates = GetDistinctCoordinatesToLookup(sourceRecords);
 
-            var results = await GetGeocodeResults(sourceRecords).ConfigureAwait(false);
+            Console.WriteLine($"Found { sourceRecords.Count() } to query, containing { distinctCoordinates.Count() } distinct coordinates.");
 
-            if(results.Count() > 0)
+            var results = await GetGeocodeResults(distinctCoordinates).ConfigureAwait(false);
+            var fullResults = BuildResults(sourceRecords, results);
+
+            if(fullResults.Count() > 0)
             {
                 Console.WriteLine($"Writing results to { _outputFile }");
-                WriteResults(results);
+                WriteResults(fullResults);
             }
             else
             {
@@ -60,18 +63,56 @@ namespace ReverseGeocode.Processors
         }
 
 
-        async Task<IEnumerable<Result>> GetGeocodeResults(IEnumerable<SourceRecord> records)
+        IEnumerable<GpsCoordinate> GetDistinctCoordinatesToLookup(IEnumerable<SourceRecord> records)
+        {
+            return records
+                .Select(r => new GpsCoordinate() {
+                    Latitude = r.Latitude,
+                    Longitude = r.Longitude
+                })
+                .Distinct();
+        }
+
+
+        IEnumerable<Result> BuildResults(IEnumerable<SourceRecord> records, IEnumerable<(GpsCoordinate coordinate, ReverseGeocodeResult result)> lookupResults)
         {
             var list = new List<Result>();
+
+            foreach(var rec in records)
+            {
+                var recCoordinate = new GpsCoordinate()
+                {
+                    Latitude = rec.Latitude,
+                    Longitude = rec.Longitude
+                };
+
+                var lookupResult = lookupResults.SingleOrDefault(res => res.coordinate.Equals(recCoordinate));
+
+                if(lookupResult == default)
+                {
+                    Console.WriteLine($"** DID NOT FIND REVERSE GEOCODE RESULT FOR ({ rec.Latitude }, { rec.Longitude })! **");
+                }
+                else {
+                    list.Add(new Result(rec, lookupResult.result));
+                }
+            }
+
+            return list;
+        }
+
+
+        async Task<IEnumerable<(GpsCoordinate, ReverseGeocodeResult)>> GetGeocodeResults(IEnumerable<GpsCoordinate> records)
+        {
+            var list = new List<(GpsCoordinate, ReverseGeocodeResult)>();
             var counter = 0;
 
-            Console.WriteLine("Querying records:");
+            Console.WriteLine("Querying coordinates:");
 
             foreach(var rec in records)
             {
                 var result = await _svc.ReverseGeocodeAsync(rec.Latitude, rec.Longitude);
 
-                list.Add(new Result(rec, result));
+                list.Add((rec, result));
 
                 if(counter % 200 == 0)
                 {
