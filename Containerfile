@@ -15,6 +15,7 @@ FROM mcr.microsoft.com/dotnet/core/runtime:3.1
 
 WORKDIR /reverse-geocode
 
+COPY _run.sh .
 COPY --from=build /app .
 
-ENTRYPOINT [ "/reverse-geocode/ReverseGeocode" ]
+ENTRYPOINT [ "./_run.sh" ]
