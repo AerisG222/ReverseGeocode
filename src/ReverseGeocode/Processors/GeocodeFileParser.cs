@@ -50,7 +50,7 @@ namespace ReverseGeocode.Processors
         {
             var result = new ParsedResult();
 
-            foreach(var header in reader.Context.HeaderRecord)
+            foreach(var header in reader.HeaderRecord)
             {
                 if(header.EndsWith(":short"))
                 {
