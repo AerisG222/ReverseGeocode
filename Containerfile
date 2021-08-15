@@ -18,4 +18,4 @@ WORKDIR /reverse-geocode
 COPY _run.sh .
 COPY --from=build /app .
 
-ENTRYPOINT [ "./_run.sh" ]
+ENTRYPOINT [ "_run.sh" ]
