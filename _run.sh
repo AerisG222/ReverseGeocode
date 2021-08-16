@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 echo '*** executing reverse geocode ***'
 
-./ReverseGeocode AUTO "${DB_CONN}" "${API_KEY}" /results
+dotnet /reverse-geocode/ReverseGeocode.dll AUTO "${DB_CONN}" "${API_KEY}" /results
