@@ -7,7 +7,7 @@ COPY ReverseGeocode.sln .
 COPY src/. ./src/
 
 RUN dotnet restore
-RUN dotnet publish -o /app -c Release
+RUN dotnet publish -o /app -c Release -r linux-musl-x64 --self-contained false
 
 
 # build runtime image
