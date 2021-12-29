@@ -1,5 +1,5 @@
 # build app
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as build
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine-amd64 AS build
 
 WORKDIR /src
 
@@ -11,7 +11,7 @@ RUN dotnet publish -o /app -c Release
 
 
 # build runtime image
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine-amd64
 
 WORKDIR /reverse-geocode
 
