@@ -4,17 +4,17 @@
         <VersionPrefix>0.3.0</VersionPrefix>
         <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <DebugType>portable</DebugType>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CsvHelper" Version="27.1.1" />
-        <PackageReference Include="Dapper" Version="2.0.90" />
-        <PackageReference Include="Humanizer.Core" Version="2.11.10" />
-        <PackageReference Include="Npgsql" Version="5.0.7" />
-        <PackageReference Include="RestSharp" Version="106.12.0" />
+        <PackageReference Include="CsvHelper" Version="27.2.1" />
+        <PackageReference Include="Dapper" Version="2.0.123" />
+        <PackageReference Include="Humanizer.Core" Version="2.13.14" />
+        <PackageReference Include="Npgsql" Version="6.0.2" />
+        <PackageReference Include="RestSharp" Version="106.15.0" />
     </ItemGroup>
 
 </Project>
