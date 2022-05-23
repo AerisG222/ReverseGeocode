@@ -13,7 +13,6 @@ public class DatabaseReader
 
     }
 
-
     public Task<IEnumerable<SourceRecord>> GetDataToGeocodeAsync()
     {
         var sql = "SELECT 'photo' AS RecordType, "

@@ -3,13 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using RestSharp;
 
-
 namespace ReverseGeocode.Services;
 
 public class GoogleMapService
 {
     readonly RestClient _client;
-
 
     public GoogleMapService(string apiKey)
     {
@@ -21,7 +19,6 @@ public class GoogleMapService
         _client = new RestClient("https://maps.googleapis.com/maps/api/geocode/json");
         _client.AddDefaultQueryParameter("key", apiKey);
     }
-
 
     public async Task<ReverseGeocodeResult> ReverseGeocodeAsync(double latitude, double longitude)
     {
@@ -42,7 +39,6 @@ public class GoogleMapService
 
         return null;
     }
-
 
     ReverseGeocodeResult BuildResult(ReverseGeocodeResponse response)
     {
@@ -75,7 +71,6 @@ public class GoogleMapService
 
         return result;
     }
-
 
     string BuildKey(AddressComponent ac)
     {

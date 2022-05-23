@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Dapper;
 using ReverseGeocode.Processors;
 
-
 namespace ReverseGeocode.Data;
 
 public class DatabaseWriter
@@ -14,7 +13,6 @@ public class DatabaseWriter
     {
 
     }
-
 
     public async Task WriteDataAsync(ParsedResult result)
     {
@@ -36,7 +34,6 @@ public class DatabaseWriter
             await MarkOverrideAsProcessed(result);
         }
     }
-
 
     async Task WriteReverseGeocodeData(ParsedResult result)
     {
@@ -91,7 +88,6 @@ public class DatabaseWriter
         }
     }
 
-
     async Task WritePointsOfInterest(ParsedResult result)
     {
         var sql = $"INSERT INTO { result.RecordType }.point_of_interest "
@@ -128,7 +124,6 @@ public class DatabaseWriter
         }
     }
 
-
     async Task MarkOverrideAsProcessed(ParsedResult result)
     {
         var sql = $"UPDATE { result.RecordType }.gps_override "
@@ -147,18 +142,15 @@ public class DatabaseWriter
         }
     }
 
-
     Task DeleteReverseGeocodeOverrideData(ParsedResult result)
     {
         return DeleteOverrideData(result, "reverse_geocode");
     }
 
-
     Task DeletePointOfInterestOverrideData(ParsedResult result)
     {
         return DeleteOverrideData(result, "point_of_interest");
     }
-
 
     async Task DeleteOverrideData(ParsedResult result, string tablename)
     {

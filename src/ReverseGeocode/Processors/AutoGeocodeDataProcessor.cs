@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-
 namespace ReverseGeocode.Processors;
 
 public class AutoGeocodeDataProcessor
@@ -12,14 +11,12 @@ public class AutoGeocodeDataProcessor
     readonly WriteGeocodeDataProcessor _writeProcessor;
     readonly string _file;
 
-
     public AutoGeocodeDataProcessor(GetGeocodeDataProcessor getProcessor, WriteGeocodeDataProcessor writeProcessor, string file)
     {
         _getProcessor = getProcessor ?? throw new ArgumentNullException(nameof(getProcessor));
         _writeProcessor = writeProcessor ?? throw new ArgumentNullException(nameof(writeProcessor));
         _file = file ?? throw new ArgumentNullException(nameof(file));
     }
-
 
     public async Task ProcessAsync()
     {

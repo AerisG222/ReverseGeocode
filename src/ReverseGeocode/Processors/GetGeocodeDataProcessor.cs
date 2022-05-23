@@ -8,7 +8,6 @@ using CsvHelper;
 using ReverseGeocode.Data;
 using ReverseGeocode.Services;
 
-
 namespace ReverseGeocode.Processors;
 
 public class GetGeocodeDataProcessor
@@ -18,14 +17,12 @@ public class GetGeocodeDataProcessor
     readonly GoogleMapService _svc;
     readonly string _outputFile;
 
-
     public GetGeocodeDataProcessor(DatabaseReader db, GoogleMapService svc, string outputFile)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _svc = svc ?? throw new ArgumentNullException(nameof(svc));
         _outputFile = outputFile ?? throw new ArgumentNullException(nameof(outputFile));
     }
-
 
     public async Task ProcessAsync()
     {
@@ -62,7 +59,6 @@ public class GetGeocodeDataProcessor
         Console.WriteLine("Completed.");
     }
 
-
     IEnumerable<GpsCoordinate> GetDistinctCoordinatesToLookup(IEnumerable<SourceRecord> records)
     {
         return records
@@ -73,7 +69,6 @@ public class GetGeocodeDataProcessor
             })
             .Distinct();
     }
-
 
     IEnumerable<Result> BuildResults(IEnumerable<SourceRecord> records, IEnumerable<(GpsCoordinate coordinate, ReverseGeocodeResult result)> lookupResults)
     {
@@ -102,7 +97,6 @@ public class GetGeocodeDataProcessor
         return list;
     }
 
-
     async Task<IEnumerable<(GpsCoordinate, ReverseGeocodeResult)>> GetGeocodeResults(IEnumerable<GpsCoordinate> records)
     {
         var list = new List<(GpsCoordinate, ReverseGeocodeResult)>();
@@ -127,7 +121,6 @@ public class GetGeocodeDataProcessor
         return list;
     }
 
-
     void WriteResults(IEnumerable<Result> results)
     {
         var fields = results
@@ -145,7 +138,6 @@ public class GetGeocodeDataProcessor
             WriteDataRows(csvWriter, fields, results);
         }
     }
-
 
     void WriteHeaderRow(CsvWriter csvWriter, IEnumerable<string> fields)
     {
@@ -165,7 +157,6 @@ public class GetGeocodeDataProcessor
         }
     }
 
-
     void WriteDataRows(CsvWriter csvWriter, IEnumerable<string> fields, IEnumerable<Result> results)
     {
         foreach (var result in results)
@@ -175,7 +166,6 @@ public class GetGeocodeDataProcessor
             csvWriter.NextRecord();
         }
     }
-
 
     void WriteDataRow(CsvWriter csvWriter, IEnumerable<string> fields, Result result)
     {

@@ -5,7 +5,6 @@ using System.IO;
 using CsvHelper;
 using Humanizer;
 
-
 namespace ReverseGeocode.Processors;
 
 public class GeocodeFileParser
@@ -25,7 +24,6 @@ public class GeocodeFileParser
         return ParseFile(file);
     }
 
-
     IEnumerable<ParsedResult> ParseFile(string file)
     {
         var list = new List<ParsedResult>();
@@ -44,7 +42,6 @@ public class GeocodeFileParser
 
         return list;
     }
-
 
     ParsedResult BuildParsedResult(CsvReader reader)
     {
@@ -207,7 +204,6 @@ public class GeocodeFileParser
 
         return result;
     }
-
 
     string GetPointOfInterestType(string header)
     {

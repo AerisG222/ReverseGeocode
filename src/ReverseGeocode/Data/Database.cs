@@ -3,13 +3,11 @@ using System.Data;
 using System.Threading.Tasks;
 using Npgsql;
 
-
 namespace ReverseGeocode.Data;
 
 public abstract class Database
 {
     readonly string _connString;
-
 
     public Database(string connString)
     {
@@ -20,7 +18,6 @@ public abstract class Database
 
         _connString = connString;
     }
-
 
     protected async Task<T> RunAsync<T>(Func<IDbConnection, Task<T>> queryData)
     {
@@ -35,7 +32,6 @@ public abstract class Database
         }
     }
 
-
     protected async Task RunAsync(Func<IDbConnection, Task> executeStatement)
     {
         if (executeStatement == null)
@@ -48,7 +44,6 @@ public abstract class Database
             await executeStatement(conn).ConfigureAwait(false);
         }
     }
-
 
     async Task<IDbConnection> GetConnectionAsync()
     {

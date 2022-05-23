@@ -3,7 +3,6 @@ using System.IO;
 using ReverseGeocode.Data;
 using ReverseGeocode.Services;
 
-
 namespace ReverseGeocode.Processors;
 
 public class ProcessorBuilder
@@ -30,7 +29,6 @@ public class ProcessorBuilder
         return null;
     }
 
-
     public AutoGeocodeDataProcessor BuildAutoProcessor(string connString, string apiKey, string archiveDir)
     {
         if (!Directory.Exists(archiveDir))
@@ -47,7 +45,6 @@ public class ProcessorBuilder
         return new AutoGeocodeDataProcessor(getProcessor, writeProcessor, outputFile);
     }
 
-
     public GetGeocodeDataProcessor BuildGetProcessor(string connString, string apiKey, string outputFile)
     {
         var db = new DatabaseReader(connString);
@@ -55,7 +52,6 @@ public class ProcessorBuilder
 
         return new GetGeocodeDataProcessor(db, googleMaps, outputFile);
     }
-
 
     public WriteGeocodeDataProcessor BuildWriteProcessor(string connString, string inputFile)
     {

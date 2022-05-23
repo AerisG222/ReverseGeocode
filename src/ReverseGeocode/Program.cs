@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using ReverseGeocode.Processors;
 
-
 namespace ReverseGeocode;
 
 class Program
@@ -35,7 +34,6 @@ class Program
             Environment.Exit(3);
         }
     }
-
 
     static void ShowUsage()
     {

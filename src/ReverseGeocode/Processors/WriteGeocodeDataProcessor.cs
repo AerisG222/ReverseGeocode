@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ReverseGeocode.Data;
 
-
 namespace ReverseGeocode.Processors;
 
 public class WriteGeocodeDataProcessor
@@ -12,13 +11,11 @@ public class WriteGeocodeDataProcessor
     readonly DatabaseWriter _db;
     readonly string _inputFile;
 
-
     public WriteGeocodeDataProcessor(DatabaseWriter db, string inputFile)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _inputFile = inputFile ?? throw new ArgumentNullException(nameof(inputFile));
     }
-
 
     public async Task ProcessAsync()
     {

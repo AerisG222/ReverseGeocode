@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 namespace ReverseGeocode.Services;
 
 internal class ReverseGeocodeResponse
@@ -10,13 +9,11 @@ internal class ReverseGeocodeResponse
     public string status { get; set; }
 }
 
-
 internal class PlusCode
 {
     public string compound_code { get; set; }
     public string global_code { get; set; }
 }
-
 
 internal class Result
 {
@@ -27,14 +24,12 @@ internal class Result
     public List<string> types { get; set; }
 }
 
-
 internal class AddressComponent
 {
     public string long_name { get; set; }
     public string short_name { get; set; }
     public List<string> types { get; set; }
 }
-
 
 internal class Geometry
 {
@@ -44,13 +39,11 @@ internal class Geometry
     public Bounds viewport { get; set; }
 }
 
-
 internal class Bounds
 {
     public Location northeast { get; set; }
     public Location southwest { get; set; }
 }
-
 
 internal class Location
 {
