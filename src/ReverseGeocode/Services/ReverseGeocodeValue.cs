@@ -1,15 +1,14 @@
-namespace ReverseGeocode.Services
+namespace ReverseGeocode.Services;
+
+public class ReverseGeocodeValue
 {
-    public class ReverseGeocodeValue
+    public string LongName { get; private set; }
+    public string ShortName { get; private set; }
+
+
+    public ReverseGeocodeValue(string longName, string shortName)
     {
-        public string LongName { get; private set; }
-        public string ShortName { get; private set; }
-
-
-        public ReverseGeocodeValue(string longName, string shortName)
-        {
-            LongName = longName;
-            ShortName = shortName;
-        }
+        LongName = longName;
+        ShortName = shortName;
     }
 }

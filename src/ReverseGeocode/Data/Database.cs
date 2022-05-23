@@ -4,59 +4,58 @@ using System.Threading.Tasks;
 using Npgsql;
 
 
-namespace ReverseGeocode.Data
+namespace ReverseGeocode.Data;
+
+public abstract class Database
 {
-    public abstract class Database
+    readonly string _connString;
+
+
+    public Database(string connString)
     {
-        readonly string _connString;
-
-
-        public Database(string connString)
+        if (string.IsNullOrEmpty(connString))
         {
-            if(string.IsNullOrEmpty(connString))
-            {
-                throw new ArgumentNullException(nameof(connString));
-            }
-
-            _connString = connString;
+            throw new ArgumentNullException(nameof(connString));
         }
 
+        _connString = connString;
+    }
 
-        protected async Task<T> RunAsync<T>(Func<IDbConnection, Task<T>> queryData)
+
+    protected async Task<T> RunAsync<T>(Func<IDbConnection, Task<T>> queryData)
+    {
+        if (queryData == null)
         {
-            if(queryData == null)
-            {
-                throw new ArgumentNullException(nameof(queryData));
-            }
-
-            using(var conn = await GetConnectionAsync())
-            {
-                return await queryData(conn).ConfigureAwait(false);
-            }
+            throw new ArgumentNullException(nameof(queryData));
         }
 
-
-        protected async Task RunAsync(Func<IDbConnection, Task> executeStatement)
+        using (var conn = await GetConnectionAsync())
         {
-            if(executeStatement == null)
-            {
-                throw new ArgumentNullException(nameof(executeStatement));
-            }
+            return await queryData(conn).ConfigureAwait(false);
+        }
+    }
 
-            using(var conn = await GetConnectionAsync())
-            {
-                await executeStatement(conn).ConfigureAwait(false);
-            }
+
+    protected async Task RunAsync(Func<IDbConnection, Task> executeStatement)
+    {
+        if (executeStatement == null)
+        {
+            throw new ArgumentNullException(nameof(executeStatement));
         }
 
-
-        async Task<IDbConnection> GetConnectionAsync()
+        using (var conn = await GetConnectionAsync())
         {
-            var conn = new NpgsqlConnection(_connString);
-
-            await conn.OpenAsync().ConfigureAwait(false);
-
-            return conn;
+            await executeStatement(conn).ConfigureAwait(false);
         }
+    }
+
+
+    async Task<IDbConnection> GetConnectionAsync()
+    {
+        var conn = new NpgsqlConnection(_connString);
+
+        await conn.OpenAsync().ConfigureAwait(false);
+
+        return conn;
     }
 }

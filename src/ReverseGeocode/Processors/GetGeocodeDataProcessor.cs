@@ -9,199 +9,200 @@ using ReverseGeocode.Data;
 using ReverseGeocode.Services;
 
 
-namespace ReverseGeocode.Processors
+namespace ReverseGeocode.Processors;
+
+public class GetGeocodeDataProcessor
+    : IProcessor
 {
-    public class GetGeocodeDataProcessor
-        : IProcessor
+    readonly DatabaseReader _db;
+    readonly GoogleMapService _svc;
+    readonly string _outputFile;
+
+
+    public GetGeocodeDataProcessor(DatabaseReader db, GoogleMapService svc, string outputFile)
     {
-        readonly DatabaseReader _db;
-        readonly GoogleMapService _svc;
-        readonly string _outputFile;
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+        _svc = svc ?? throw new ArgumentNullException(nameof(svc));
+        _outputFile = outputFile ?? throw new ArgumentNullException(nameof(outputFile));
+    }
 
 
-        public GetGeocodeDataProcessor(DatabaseReader db, GoogleMapService svc, string outputFile)
+    public async Task ProcessAsync()
+    {
+        if (File.Exists(_outputFile))
         {
-            _db = db ?? throw new ArgumentNullException(nameof(db));
-            _svc = svc ?? throw new ArgumentNullException(nameof(svc));
-            _outputFile = outputFile ?? throw new ArgumentNullException(nameof(outputFile));
+            throw new ApplicationException($"Output file [{_outputFile}] already exists!");
         }
 
+        var sourceRecords = await _db.GetDataToGeocodeAsync().ConfigureAwait(false);
 
-        public async Task ProcessAsync()
+        if (sourceRecords.Count() == 0)
         {
-            if(File.Exists(_outputFile))
+            Console.WriteLine("No records require reverse geocoding, exiting.");
+            return;
+        }
+
+        var distinctCoordinates = GetDistinctCoordinatesToLookup(sourceRecords);
+
+        Console.WriteLine($"Found { sourceRecords.Count() } to query, containing { distinctCoordinates.Count() } distinct coordinates.");
+
+        var results = await GetGeocodeResults(distinctCoordinates).ConfigureAwait(false);
+        var fullResults = BuildResults(sourceRecords, results);
+
+        if (fullResults.Count() > 0)
+        {
+            Console.WriteLine($"Writing results to { _outputFile }");
+            WriteResults(fullResults);
+        }
+        else
+        {
+            Console.WriteLine("No rec");
+        }
+
+        Console.WriteLine("Completed.");
+    }
+
+
+    IEnumerable<GpsCoordinate> GetDistinctCoordinatesToLookup(IEnumerable<SourceRecord> records)
+    {
+        return records
+            .Select(r => new GpsCoordinate()
             {
-                throw new ApplicationException($"Output file [{_outputFile}] already exists!");
-            }
+                Latitude = r.Latitude,
+                Longitude = r.Longitude
+            })
+            .Distinct();
+    }
 
-            var sourceRecords = await _db.GetDataToGeocodeAsync().ConfigureAwait(false);
 
-            if(sourceRecords.Count() == 0)
+    IEnumerable<Result> BuildResults(IEnumerable<SourceRecord> records, IEnumerable<(GpsCoordinate coordinate, ReverseGeocodeResult result)> lookupResults)
+    {
+        var list = new List<Result>();
+
+        foreach (var rec in records)
+        {
+            var recCoordinate = new GpsCoordinate()
             {
-                Console.WriteLine("No records require reverse geocoding, exiting.");
-                return;
-            }
+                Latitude = rec.Latitude,
+                Longitude = rec.Longitude
+            };
 
-            var distinctCoordinates = GetDistinctCoordinatesToLookup(sourceRecords);
+            var lookupResult = lookupResults.SingleOrDefault(res => res.coordinate.Equals(recCoordinate));
 
-            Console.WriteLine($"Found { sourceRecords.Count() } to query, containing { distinctCoordinates.Count() } distinct coordinates.");
-
-            var results = await GetGeocodeResults(distinctCoordinates).ConfigureAwait(false);
-            var fullResults = BuildResults(sourceRecords, results);
-
-            if(fullResults.Count() > 0)
+            if (lookupResult == default)
             {
-                Console.WriteLine($"Writing results to { _outputFile }");
-                WriteResults(fullResults);
+                Console.WriteLine($"** DID NOT FIND REVERSE GEOCODE RESULT FOR ({ rec.Latitude }, { rec.Longitude })! **");
             }
             else
             {
-                Console.WriteLine("No rec");
+                list.Add(new Result(rec, lookupResult.result));
             }
-
-            Console.WriteLine("Completed.");
         }
 
+        return list;
+    }
 
-        IEnumerable<GpsCoordinate> GetDistinctCoordinatesToLookup(IEnumerable<SourceRecord> records)
+
+    async Task<IEnumerable<(GpsCoordinate, ReverseGeocodeResult)>> GetGeocodeResults(IEnumerable<GpsCoordinate> records)
+    {
+        var list = new List<(GpsCoordinate, ReverseGeocodeResult)>();
+        var counter = 0;
+
+        Console.WriteLine("Querying coordinates:");
+
+        foreach (var rec in records)
         {
-            return records
-                .Select(r => new GpsCoordinate() {
-                    Latitude = r.Latitude,
-                    Longitude = r.Longitude
-                })
-                .Distinct();
-        }
+            var result = await _svc.ReverseGeocodeAsync(rec.Latitude, rec.Longitude);
 
+            list.Add((rec, result));
 
-        IEnumerable<Result> BuildResults(IEnumerable<SourceRecord> records, IEnumerable<(GpsCoordinate coordinate, ReverseGeocodeResult result)> lookupResults)
-        {
-            var list = new List<Result>();
-
-            foreach(var rec in records)
+            if (counter % 200 == 0)
             {
-                var recCoordinate = new GpsCoordinate()
-                {
-                    Latitude = rec.Latitude,
-                    Longitude = rec.Longitude
-                };
-
-                var lookupResult = lookupResults.SingleOrDefault(res => res.coordinate.Equals(recCoordinate));
-
-                if(lookupResult == default)
-                {
-                    Console.WriteLine($"** DID NOT FIND REVERSE GEOCODE RESULT FOR ({ rec.Latitude }, { rec.Longitude })! **");
-                }
-                else {
-                    list.Add(new Result(rec, lookupResult.result));
-                }
+                Console.WriteLine($"    {counter} - most recent status: { result.Status }");
             }
 
-            return list;
+            counter++;
         }
 
+        return list;
+    }
 
-        async Task<IEnumerable<(GpsCoordinate, ReverseGeocodeResult)>> GetGeocodeResults(IEnumerable<GpsCoordinate> records)
+
+    void WriteResults(IEnumerable<Result> results)
+    {
+        var fields = results
+            .SelectMany(r => r.GeocodeResult.Details.Keys)
+            .Distinct()
+            .OrderBy(x => x);
+
+        using (var fileWriter = File.CreateText(_outputFile))
+        using (var csvWriter = new CsvWriter(fileWriter, CultureInfo.CurrentCulture))
         {
-            var list = new List<(GpsCoordinate, ReverseGeocodeResult)>();
-            var counter = 0;
+            WriteHeaderRow(csvWriter, fields);
 
-            Console.WriteLine("Querying coordinates:");
+            csvWriter.NextRecord();
 
-            foreach(var rec in records)
-            {
-                var result = await _svc.ReverseGeocodeAsync(rec.Latitude, rec.Longitude);
-
-                list.Add((rec, result));
-
-                if(counter % 200 == 0)
-                {
-                    Console.WriteLine($"    {counter} - most recent status: { result.Status }");
-                }
-
-                counter++;
-            }
-
-            return list;
+            WriteDataRows(csvWriter, fields, results);
         }
+    }
 
 
-        void WriteResults(IEnumerable<Result> results)
+    void WriteHeaderRow(CsvWriter csvWriter, IEnumerable<string> fields)
+    {
+        csvWriter.WriteField("Record Type");
+        csvWriter.WriteField("Record Id");
+        csvWriter.WriteField("Is Override");
+        csvWriter.WriteField("Latitude");
+        csvWriter.WriteField("Longitude");
+
+        csvWriter.WriteField("Status");
+        csvWriter.WriteField("Formatted Address");
+
+        foreach (var field in fields)
         {
-            var fields = results
-                .SelectMany(r => r.GeocodeResult.Details.Keys)
-                .Distinct()
-                .OrderBy(x => x);
-
-            using(var fileWriter = File.CreateText(_outputFile))
-            using(var csvWriter = new CsvWriter(fileWriter, CultureInfo.CurrentCulture))
-            {
-                WriteHeaderRow(csvWriter, fields);
-
-                csvWriter.NextRecord();
-
-                WriteDataRows(csvWriter, fields, results);
-            }
+            csvWriter.WriteField($"{field}:short");
+            csvWriter.WriteField($"{field}:long");
         }
+    }
 
 
-        void WriteHeaderRow(CsvWriter csvWriter, IEnumerable<string> fields)
+    void WriteDataRows(CsvWriter csvWriter, IEnumerable<string> fields, IEnumerable<Result> results)
+    {
+        foreach (var result in results)
         {
-            csvWriter.WriteField("Record Type");
-            csvWriter.WriteField("Record Id");
-            csvWriter.WriteField("Is Override");
-            csvWriter.WriteField("Latitude");
-            csvWriter.WriteField("Longitude");
+            WriteDataRow(csvWriter, fields, result);
 
-            csvWriter.WriteField("Status");
-            csvWriter.WriteField("Formatted Address");
-
-            foreach(var field in fields)
-            {
-                csvWriter.WriteField($"{field}:short");
-                csvWriter.WriteField($"{field}:long");
-            }
+            csvWriter.NextRecord();
         }
+    }
 
 
-        void WriteDataRows(CsvWriter csvWriter, IEnumerable<string> fields, IEnumerable<Result> results)
+    void WriteDataRow(CsvWriter csvWriter, IEnumerable<string> fields, Result result)
+    {
+        csvWriter.WriteField(result.Source.RecordType);
+        csvWriter.WriteField(result.Source.Id);
+        csvWriter.WriteField(result.Source.IsOverride);
+        csvWriter.WriteField(result.Source.Latitude);
+        csvWriter.WriteField(result.Source.Longitude);
+
+        csvWriter.WriteField(result.GeocodeResult.Status);
+        csvWriter.WriteField(result.GeocodeResult.FormattedAddress);
+
+        foreach (var field in fields)
         {
-            foreach(var result in results)
+            var shortValue = string.Empty;
+            var longValue = string.Empty;
+
+            if (result.GeocodeResult.Details.ContainsKey(field))
             {
-                WriteDataRow(csvWriter, fields, result);
+                var val = result.GeocodeResult.Details[field];
 
-                csvWriter.NextRecord();
+                shortValue = val.ShortName;
+                longValue = val.LongName;
             }
-        }
 
-
-        void WriteDataRow(CsvWriter csvWriter, IEnumerable<string> fields, Result result)
-        {
-            csvWriter.WriteField(result.Source.RecordType);
-            csvWriter.WriteField(result.Source.Id);
-            csvWriter.WriteField(result.Source.IsOverride);
-            csvWriter.WriteField(result.Source.Latitude);
-            csvWriter.WriteField(result.Source.Longitude);
-
-            csvWriter.WriteField(result.GeocodeResult.Status);
-            csvWriter.WriteField(result.GeocodeResult.FormattedAddress);
-
-            foreach(var field in fields)
-            {
-                var shortValue = string.Empty;
-                var longValue = string.Empty;
-
-                if(result.GeocodeResult.Details.ContainsKey(field))
-                {
-                    var val = result.GeocodeResult.Details[field];
-
-                    shortValue = val.ShortName;
-                    longValue = val.LongName;
-                }
-
-                csvWriter.WriteField(shortValue);
-                csvWriter.WriteField(longValue);
-            }
+            csvWriter.WriteField(shortValue);
+            csvWriter.WriteField(longValue);
         }
     }
 }

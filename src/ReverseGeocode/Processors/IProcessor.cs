@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 
 
-namespace ReverseGeocode.Processors
+namespace ReverseGeocode.Processors;
+
+public interface IProcessor
 {
-    public interface IProcessor
-    {
-        Task ProcessAsync();
-    }
+    Task ProcessAsync();
 }
