@@ -1,20 +1,28 @@
 # build app
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine-amd64 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
+WORKDIR /reverse-geocode
 
-WORKDIR /src
+COPY ReverseGeocode.slnx .
+COPY nuget.config .
+COPY src/ReverseGeocode/ReverseGeocode.csproj src/ReverseGeocode/
+RUN dotnet restore \
+    --runtime linux-x64 \
+    src/ReverseGeocode/ReverseGeocode.csproj
 
-COPY ReverseGeocode.sln .
-COPY src/. ./src/
-
-RUN dotnet restore
-RUN dotnet publish src/ReverseGeocode/ReverseGeocode.csproj -o /app -c Release -r linux-musl-x64 --self-contained false
+COPY src/. src/
+RUN dotnet publish \
+    --no-restore \
+    --no-self-contained \
+    --configuration Release \
+    --runtime linux-x64 \
+    --output /build \
+    src/ReverseGeocode/ReverseGeocode.csproj
 
 
 # build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine-amd64
-
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra-amd64
 WORKDIR /reverse-geocode
 
-COPY --from=build /app .
+COPY --from=build /build .
 
 ENTRYPOINT [ "/reverse-geocode/ReverseGeocode" ]

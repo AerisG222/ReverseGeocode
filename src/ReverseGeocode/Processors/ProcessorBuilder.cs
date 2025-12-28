@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using ReverseGeocode.Data;
 using ReverseGeocode.Services;
 
