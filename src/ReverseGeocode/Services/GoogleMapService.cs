@@ -23,7 +23,7 @@ public class GoogleMapService
 
         request.AddQueryParameter("latlng", $"{latitude},{longitude}");
 
-        var response = await _client.ExecuteGetAsync<ReverseGeocodeResponse>(request).ConfigureAwait(false);
+        var response = await _client.ExecuteGetAsync<ReverseGeocodeResponse>(request);
 
         if (response.IsSuccessful)
         {

@@ -24,7 +24,7 @@ class Program
 
         try
         {
-            await processor.ProcessAsync().ConfigureAwait(false);
+            await processor.ProcessAsync();
         }
         catch (Exception ex)
         {

@@ -26,7 +26,7 @@ public class GetGeocodeDataProcessor
             throw new ApplicationException($"Output file [{_outputFile}] already exists!");
         }
 
-        var sourceRecords = await _db.GetDataToGeocodeAsync().ConfigureAwait(false);
+        var sourceRecords = await _db.GetDataToGeocodeAsync();
 
         if (sourceRecords.Count() == 0)
         {
@@ -38,7 +38,7 @@ public class GetGeocodeDataProcessor
 
         Console.WriteLine($"Found { sourceRecords.Count() } to query, containing { distinctCoordinates.Count() } distinct coordinates.");
 
-        var results = await GetGeocodeResults(distinctCoordinates).ConfigureAwait(false);
+        var results = await GetGeocodeResults(distinctCoordinates);
         var fullResults = BuildResults(sourceRecords, results);
 
         if (fullResults.Count() > 0)

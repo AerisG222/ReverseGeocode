@@ -26,7 +26,7 @@ public abstract class Database
 
         using (var conn = await GetConnectionAsync())
         {
-            return await queryData(conn).ConfigureAwait(false);
+            return await queryData(conn);
         }
     }
 
@@ -39,7 +39,7 @@ public abstract class Database
 
         using (var conn = await GetConnectionAsync())
         {
-            await executeStatement(conn).ConfigureAwait(false);
+            await executeStatement(conn);
         }
     }
 
@@ -47,7 +47,7 @@ public abstract class Database
     {
         var conn = new NpgsqlConnection(_connString);
 
-        await conn.OpenAsync().ConfigureAwait(false);
+        await conn.OpenAsync();
 
         return conn;
     }
