@@ -1,6 +1,6 @@
 using RestSharp;
 
-namespace ReverseGeocode.Services;
+namespace ReverseGeocode.Google;
 
 public class GoogleMapService
 {
@@ -17,7 +17,7 @@ public class GoogleMapService
         _client.AddDefaultQueryParameter("key", apiKey);
     }
 
-    public async Task<ReverseGeocodeResult> ReverseGeocodeAsync(double latitude, double longitude)
+    public async Task<ReverseGeocodeResult> ReverseGeocodeAsync(decimal latitude, decimal longitude)
     {
         var request = new RestRequest();
 
@@ -31,17 +31,16 @@ public class GoogleMapService
         }
         else
         {
-            Console.WriteLine(response.ErrorMessage);
+            throw new ApplicationException(response.ErrorMessage);
         }
-
-        return null;
     }
 
-    ReverseGeocodeResult BuildResult(ReverseGeocodeResponse response)
+    internal ReverseGeocodeResult BuildResult(ReverseGeocodeResponse response)
     {
-        var result = new ReverseGeocodeResult();
-
-        result.Status = response.status;
+        var result = new ReverseGeocodeResult
+        {
+            Status = response.status
+        };
 
         if (string.Equals(response.status, "OK", StringComparison.OrdinalIgnoreCase))
         {
@@ -69,7 +68,7 @@ public class GoogleMapService
         return result;
     }
 
-    string BuildKey(AddressComponent ac)
+    static string BuildKey(AddressComponent ac)
     {
         return string.Join(":", ac.types);
     }

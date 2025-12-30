@@ -1,4 +1,4 @@
-namespace ReverseGeocode.Services;
+namespace ReverseGeocode.Google;
 
 public class ReverseGeocodeValue
 {

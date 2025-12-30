@@ -2,4 +2,7 @@
     <Folder Name="/src/">
         <Project Path="src/ReverseGeocode/ReverseGeocode.csproj" />
     </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/ReverseGeocode.Tests/ReverseGeocode.Tests.csproj" />
+    </Folder>
 </Solution>
