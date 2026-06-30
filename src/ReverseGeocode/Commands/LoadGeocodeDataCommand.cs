@@ -46,7 +46,7 @@ internal sealed class LoadGeocodeDataCommand
         public string GoogleApiKey { get; init; } = "";
     }
 
-    public async override Task<int> ExecuteAsync(
+    protected async override Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,
         CancellationToken token = default
@@ -72,11 +72,11 @@ internal sealed class LoadGeocodeDataCommand
                 return STATUS_SUCCESS;
             }
 
-            AnsiConsole.MarkupLineInterpolated($"[green]Found { locationsToLookup.Count() } locations to query.[/]");
+            AnsiConsole.MarkupLineInterpolated($"[green]Found {locationsToLookup.Count()} locations to query.[/]");
 
             // we plan to run this once a day - to keep under the google monthly limit of 10k free events / month, limit to
             // 300/day.  (300 * 31 = 9300 - should be more than enough to comfortably stay under our free limit)
-            foreach(var location in locationsToLookup.Take(300))
+            foreach (var location in locationsToLookup.Take(300))
             {
                 var lookupResult = await _mapService.ReverseGeocodeAsync(location.Latitude, location.Longitude);
                 var metadata = _adapter.ConvertGoogleReponse(location, lookupResult);
@@ -87,7 +87,7 @@ internal sealed class LoadGeocodeDataCommand
             AnsiConsole.MarkupLine("[green]Completed, exiting.[/]");
             return STATUS_SUCCESS;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             AnsiConsole.MarkupLineInterpolated($"[red]Error: {ex.Message}, exiting.[/]");
             return STATUS_ERROR;
