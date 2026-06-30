@@ -6,6 +6,7 @@
         <OutputType>Exe</OutputType>
         <RootNamespace>ReverseGeocode.Tests</RootNamespace>
         <TargetFramework>net10.0</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,8 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1" />
         <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.1" />
     </ItemGroup>
 
