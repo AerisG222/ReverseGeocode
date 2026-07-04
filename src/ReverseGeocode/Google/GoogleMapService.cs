@@ -8,10 +8,7 @@ public class GoogleMapService
 
     public GoogleMapService(string apiKey)
     {
-        if (string.IsNullOrEmpty(nameof(apiKey)))
-        {
-            throw new ArgumentNullException(nameof(apiKey));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
 
         _client = new RestClient("https://maps.googleapis.com/maps/api/geocode/json");
         _client.AddDefaultQueryParameter("key", apiKey);
