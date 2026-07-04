@@ -79,6 +79,23 @@ internal sealed class LoadGeocodeDataCommand
             foreach (var location in locationsToLookup.Take(300))
             {
                 var lookupResult = await _mapService.ReverseGeocodeAsync(location.Latitude, location.Longitude);
+
+                // google returns HTTP 200 even for non-success statuses.  only persist metadata when the lookup
+                // actually succeeded - otherwise we would stamp the record with empty metadata and never retry it.
+                if (!string.Equals(lookupResult.Status, "OK", StringComparison.OrdinalIgnoreCase))
+                {
+                    // if we have exhausted our quota there is no point continuing - every remaining lookup would
+                    // fail the same way and mark those records as (incorrectly) processed.
+                    if (string.Equals(lookupResult.Status, "OVER_QUERY_LIMIT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AnsiConsole.MarkupLine("[red]Google reverse geocode quota exceeded, stopping run.[/]");
+                        break;
+                    }
+
+                    AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping {location.Id}: reverse geocode returned status '{lookupResult.Status}'.[/]");
+                    continue;
+                }
+
                 var metadata = _adapter.ConvertGoogleReponse(location, lookupResult);
 
                 await _mediaService.UpdateMetadata(metadata);
