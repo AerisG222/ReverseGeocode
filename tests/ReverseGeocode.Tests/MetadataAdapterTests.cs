@@ -4,7 +4,7 @@ using ReverseGeocode.Models;
 
 namespace ReverseGeocode.Tests;
 
-public class MetadataConverterTests
+public class MetadataAdapterTests
 {
     [Fact]
     public void TestConvertingResponse()
