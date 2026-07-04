@@ -2,6 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
 WORKDIR /reverse-geocode
 
+COPY Directory.Packages.props .
 COPY ReverseGeocode.slnx .
 COPY nuget.config .
 COPY src/ReverseGeocode/ReverseGeocode.csproj src/ReverseGeocode/
