@@ -33,7 +33,7 @@ public class MediaService
 
         if(!response.IsSuccessful)
         {
-            throw new ApplicationException($"Failed to load locations with missing metadata!  Response: {response.ErrorMessage}: {response.StatusCode} - {response.Content}");
+            throw new ApplicationException($"Failed to update metadata for location {metadata.LocationId}!  Response: {response.ErrorMessage}: {response.StatusCode} - {response.Content}");
         }
     }
 
