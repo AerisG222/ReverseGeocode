@@ -6,12 +6,16 @@ public class GoogleMapService
     : IDisposable
 {
     readonly RestClient _client;
+    readonly IReadOnlySet<string> _typesOfInterest;
 
     bool _disposed;
 
-    public GoogleMapService(string apiKey)
+    public GoogleMapService(string apiKey, IReadOnlySet<string> typesOfInterest)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+        ArgumentNullException.ThrowIfNull(typesOfInterest);
+
+        _typesOfInterest = typesOfInterest;
 
         _client = new RestClient("https://maps.googleapis.com/maps/api/geocode/json");
         _client.AddDefaultQueryParameter("key", apiKey);
@@ -64,17 +68,33 @@ public class GoogleMapService
 
             var components = addressComponents.SelectMany(result => result.address_components ?? []);
 
+            // google repeats the same component across results, so track the pois we have already
+            // captured - unlike Details, the list cannot dedupe them on its own.
+            var seenPointsOfInterest = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var component in components)
             {
-                if (component.long_name is null)
+                if (component.long_name is null || component.types is null)
                 {
                     continue;
                 }
 
-                var key = BuildKey(component);
-                var value = new ReverseGeocodeValue(component.long_name, component.short_name);
+                var value = new ReverseGeocodeValue(component.long_name, component.short_name, component.types);
 
-                result.Details.TryAdd(key, value);
+                // index under each individual type rather than the joined tuple, so lookups do not
+                // depend on the order google happened to return `types` in.
+                foreach (var type in component.types)
+                {
+                    if (_typesOfInterest.Contains(type))
+                    {
+                        result.Details.TryAdd(type, value);
+                    }
+                }
+
+                if (value.IsPointOfInterest && seenPointsOfInterest.Add(BuildKey(component)))
+                {
+                    result.PointsOfInterest.Add(value);
+                }
             }
         }
 
@@ -106,6 +126,6 @@ public class GoogleMapService
 
     static string BuildKey(AddressComponent ac)
     {
-        return string.Join(":", ac.types ?? []);
+        return $"{ac.long_name}|{string.Join(":", ac.types ?? [])}";
     }
 }

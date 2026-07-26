@@ -55,7 +55,7 @@ internal sealed class LoadGeocodeDataCommand
     {
         try
         {
-            using var mapService = new GoogleMapService(settings.GoogleApiKey);
+            using var mapService = new GoogleMapService(settings.GoogleApiKey, MetadataAdapter.RelevantTypes);
             using var mediaService = new MediaService(settings.MediaApiUrl);
 
             await mediaService.Login(

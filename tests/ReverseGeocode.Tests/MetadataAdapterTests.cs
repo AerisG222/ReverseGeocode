@@ -10,7 +10,7 @@ public class MetadataAdapterTests
     public void TestConvertingResponse()
     {
         var adapter = new MetadataAdapter();
-        using var svc = new GoogleMapService("api-key not needed");
+        using var svc = new GoogleMapService("api-key not needed", MetadataAdapter.RelevantTypes);
         var location = new Models.Location(Guid.CreateVersion7(), 51.501100m, -0.121800m);
         var response = JsonSerializer.Deserialize<ReverseGeocodeResponse>(EXAMPLE);
 
@@ -38,6 +38,116 @@ public class MetadataAdapterTests
         Assert.Single(metadata.PointsOfInterest);
         Assert.Equal("Transit Station", metadata.PointsOfInterest.First().Type);
         Assert.Equal("Westminster Pier", metadata.PointsOfInterest.First().Name);
+    }
+
+    [Fact]
+    public void TestFieldsResolveRegardlessOfTypeOrdering()
+    {
+        var adapter = new MetadataAdapter();
+        using var svc = new GoogleMapService("api-key not needed", MetadataAdapter.RelevantTypes);
+        var location = new Models.Location(Guid.CreateVersion7(), 35.659500m, 139.700600m);
+        var response = JsonSerializer.Deserialize<ReverseGeocodeResponse>(UNUSUAL_TYPE_ORDERING);
+
+        Assert.NotNull(response);
+
+        var result = svc.BuildResult(response);
+        var metadata = adapter.ConvertGoogleReponse(location, result);
+
+        // every component below lists its `types` in an order google is free to return but that a
+        // joined-tuple key would not match
+        Assert.Equal("Tokyo", metadata.AdministrativeAreaLevel1);
+        Assert.Equal("Shibuya", metadata.SubLocalityLevel1);
+        Assert.Equal("Japan", metadata.Country);
+
+        // two distinct pois sharing the same types, listed in a different order each time
+        Assert.Equal(2, metadata.PointsOfInterest.Count());
+        Assert.All(metadata.PointsOfInterest, poi => Assert.Equal("Tourist Attraction", poi.Type));
+        Assert.Contains(metadata.PointsOfInterest, poi => poi.Name == "Shibuya Crossing");
+        Assert.Contains(metadata.PointsOfInterest, poi => poi.Name == "Hachiko Statue");
+    }
+
+    const string UNUSUAL_TYPE_ORDERING =
+        """
+        {
+            "results": [
+                {
+                    "address_components": [
+                        {
+                            "long_name": "Shibuya Crossing",
+                            "short_name": "Shibuya Crossing",
+                            "types": [
+                                "tourist_attraction",
+                                "point_of_interest",
+                                "establishment"
+                            ]
+                        },
+                        {
+                            "long_name": "Hachiko Statue",
+                            "short_name": "Hachiko Statue",
+                            "types": [
+                                "establishment",
+                                "point_of_interest",
+                                "tourist_attraction"
+                            ]
+                        },
+                        {
+                            "long_name": "Shibuya",
+                            "short_name": "Shibuya",
+                            "types": [
+                                "sublocality_level_1",
+                                "sublocality",
+                                "political"
+                            ]
+                        },
+                        {
+                            "long_name": "Tokyo",
+                            "short_name": "Tokyo",
+                            "types": [
+                                "political",
+                                "administrative_area_level_1"
+                            ]
+                        },
+                        {
+                            "long_name": "Japan",
+                            "short_name": "JP",
+                            "types": [
+                                "political",
+                                "country"
+                            ]
+                        }
+                    ],
+                    "formatted_address": "Shibuya Crossing, Shibuya, Tokyo, Japan",
+                    "place_id": "test",
+                    "types": [
+                        "establishment",
+                        "point_of_interest"
+                    ]
+                }
+            ],
+            "status": "OK"
+        }
+        """;
+
+    [Fact]
+    public void TestComponentTypesWeDoNotReadAreDropped()
+    {
+        using var svc = new GoogleMapService("api-key not needed", MetadataAdapter.RelevantTypes);
+        var response = JsonSerializer.Deserialize<ReverseGeocodeResponse>(EXAMPLE);
+
+        Assert.NotNull(response);
+
+        var result = svc.BuildResult(response);
+
+        Assert.All(result.Details.Keys, key => Assert.Contains(key, MetadataAdapter.RelevantTypes));
+
+        // all present in the example payload, none of them ever read
+        Assert.DoesNotContain("political", result.Details.Keys);
+        Assert.DoesNotContain("postal_town", result.Details.Keys);
+        Assert.DoesNotContain("plus_code", result.Details.Keys);
+        Assert.DoesNotContain("establishment", result.Details.Keys);
+
+        // pois live outside Details, so filtering it does not lose them
+        Assert.Single(result.PointsOfInterest);
     }
 
     // https://maps.googleapis.com/maps/api/geocode/json?latlng=51.501100,-0.121800&key=<apikey>
