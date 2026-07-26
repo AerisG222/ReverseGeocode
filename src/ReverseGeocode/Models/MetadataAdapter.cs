@@ -58,7 +58,7 @@ public class MetadataAdapter
         return pois;
     }
 
-    static string TryGetValue(ReverseGeocodeResult metadata, params string[] fieldNames)
+    static string? TryGetValue(ReverseGeocodeResult metadata, params string[] fieldNames)
     {
         foreach(var fieldName in fieldNames)
         {

@@ -10,9 +10,12 @@ public class MetadataAdapterTests
     public void TestConvertingResponse()
     {
         var adapter = new MetadataAdapter();
-        var svc = new GoogleMapService("api-key not needed");
+        using var svc = new GoogleMapService("api-key not needed");
         var location = new Models.Location(Guid.CreateVersion7(), 51.501100m, -0.121800m);
         var response = JsonSerializer.Deserialize<ReverseGeocodeResponse>(EXAMPLE);
+
+        Assert.NotNull(response);
+
         var result = svc.BuildResult(response);
         var metadata = adapter.ConvertGoogleReponse(location, result);
 

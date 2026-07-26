@@ -8,8 +8,11 @@ using ReverseGeocode.Models;
 namespace ReverseGeocode.MawMedia;
 
 public class MediaService
+    : IDisposable
 {
     readonly RestClient _mediaClient;
+
+    bool _disposed;
 
     public MediaService(string apiUrl)
     {
@@ -21,15 +24,21 @@ public class MediaService
         _mediaClient = new RestClient(apiUrl, configureSerialization: s => s.UseSystemTextJson(opts));
     }
 
-    public async Task<IEnumerable<Location>> GetLocationsWithoutMetadata() =>
-        await _mediaClient.GetAsync<IEnumerable<Location>>("locations/missing-metadata");
-
-    public async Task UpdateMetadata(LocationMetadata metadata)
+    public async Task<IReadOnlyList<Location>> GetLocationsWithoutMetadata(CancellationToken token = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return await _mediaClient.GetAsync<List<Location>>("locations/missing-metadata", token) ?? [];
+    }
+
+    public async Task UpdateMetadata(LocationMetadata metadata, CancellationToken token = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var request = new RestRequest($"locations/{metadata.LocationId}/metadata", Method.Post);
         request.AddJsonBody(metadata);
 
-        var response = await _mediaClient.ExecuteAsync<bool>(request);
+        var response = await _mediaClient.ExecuteAsync<bool>(request, token);
 
         if(!response.IsSuccessful)
         {
@@ -37,8 +46,16 @@ public class MediaService
         }
     }
 
-    public async Task Login(string loginUrl, string audience, string clientId, string clientSecret)
+    public async Task Login(
+        string loginUrl,
+        string audience,
+        string clientId,
+        string clientSecret,
+        CancellationToken token = default
+    )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         ArgumentException.ThrowIfNullOrWhiteSpace(loginUrl);
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         ArgumentException.ThrowIfNullOrWhiteSpace(clientSecret);
@@ -60,13 +77,36 @@ public class MediaService
             ParameterType.RequestBody
         );
 
-        var response = await client.ExecuteAsync<LoginResponse>(request);
+        var response = await client.ExecuteAsync<LoginResponse>(request, token);
 
-        if(!response.IsSuccessful)
+        if(!response.IsSuccessful || response.Data?.access_token is null)
         {
             throw new ApplicationException($"Did not successfully authenticate!  Response: {response.Content}");
         }
 
         _mediaClient.AddDefaultHeader("authorization", $"Bearer {response.Data.access_token}");
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+
+        // no finalizer here - we only own managed state - but a derived type may add one.
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _mediaClient.Dispose();
+        }
+
+        _disposed = true;
     }
 }

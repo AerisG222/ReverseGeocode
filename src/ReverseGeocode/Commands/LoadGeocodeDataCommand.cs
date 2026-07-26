@@ -13,10 +13,11 @@ internal sealed class LoadGeocodeDataCommand
     const int STATUS_SUCCESS = 0;
     const int STATUS_ERROR = 1;
 
-    readonly MetadataAdapter _adapter = new();
+    // we plan to run this once a day - to keep under the google monthly limit of 10k free events / month, limit to
+    // 300/day.  (300 * 31 = 9300 - should be more than enough to comfortably stay under our free limit)
+    const int DAILY_LOOKUP_LIMIT = 300;
 
-    GoogleMapService _mapService;
-    MediaService _mediaService;
+    readonly MetadataAdapter _adapter = new();
 
     public sealed class Settings
         : CommandSettings
@@ -54,31 +55,46 @@ internal sealed class LoadGeocodeDataCommand
     {
         try
         {
-            _mapService = new GoogleMapService(settings.GoogleApiKey);
-            _mediaService = new MediaService(settings.MediaApiUrl);
+            using var mapService = new GoogleMapService(settings.GoogleApiKey);
+            using var mediaService = new MediaService(settings.MediaApiUrl);
 
-            await _mediaService.Login(
+            await mediaService.Login(
                 settings.Auth0LoginUrl,
                 settings.Audience,
                 settings.ClientId,
-                settings.ClientSecret
+                settings.ClientSecret,
+                token
             );
 
-            var locationsToLookup = await _mediaService.GetLocationsWithoutMetadata();
+            var locationsToLookup = await mediaService.GetLocationsWithoutMetadata(token);
 
-            if (locationsToLookup.Count() == 0)
+            if (locationsToLookup.Count == 0)
             {
                 AnsiConsole.MarkupLine("[yellow]No records require reverse geocoding, exiting.[/]");
                 return STATUS_SUCCESS;
             }
 
-            AnsiConsole.MarkupLineInterpolated($"[green]Found {locationsToLookup.Count()} locations to query.[/]");
+            AnsiConsole.MarkupLineInterpolated($"[green]Found {locationsToLookup.Count} locations to query.[/]");
 
-            // we plan to run this once a day - to keep under the google monthly limit of 10k free events / month, limit to
-            // 300/day.  (300 * 31 = 9300 - should be more than enough to comfortably stay under our free limit)
-            foreach (var location in locationsToLookup.Take(300))
+            var failureCount = 0;
+
+            foreach (var location in locationsToLookup.Take(DAILY_LOOKUP_LIMIT))
             {
-                var lookupResult = await _mapService.ReverseGeocodeAsync(location.Latitude, location.Longitude);
+                token.ThrowIfCancellationRequested();
+
+                ReverseGeocodeResult lookupResult;
+
+                // a transient failure on a single location should not discard the rest of the run.
+                try
+                {
+                    lookupResult = await mapService.ReverseGeocodeAsync(location.Latitude, location.Longitude, token);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    failureCount++;
+                    AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping {location.Id}: reverse geocode request failed: {ex.Message}[/]");
+                    continue;
+                }
 
                 // google returns HTTP 200 even for non-success statuses.  only persist metadata when the lookup
                 // actually succeeded - otherwise we would stamp the record with empty metadata and never retry it.
@@ -98,7 +114,22 @@ internal sealed class LoadGeocodeDataCommand
 
                 var metadata = _adapter.ConvertGoogleReponse(location, lookupResult);
 
-                await _mediaService.UpdateMetadata(metadata);
+                // we have already spent quota on this lookup, so keep going if the write fails.
+                try
+                {
+                    await mediaService.UpdateMetadata(metadata, token);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    failureCount++;
+                    AnsiConsole.MarkupLineInterpolated($"[yellow]Failed to store metadata for {location.Id}: {ex.Message}[/]");
+                }
+            }
+
+            if (failureCount > 0)
+            {
+                AnsiConsole.MarkupLineInterpolated($"[yellow]Completed with {failureCount} failed location(s), exiting.[/]");
+                return STATUS_ERROR;
             }
 
             AnsiConsole.MarkupLine("[green]Completed, exiting.[/]");
