@@ -42,7 +42,7 @@ public class MediaService
 
         if(!response.IsSuccessful)
         {
-            throw new ApplicationException($"Failed to update metadata for location {metadata.LocationId}!  Response: {response.ErrorMessage}: {response.StatusCode} - {response.Content}");
+            throw new ReverseGeocodeException($"Failed to update metadata for location {metadata.LocationId}!  Response: {response.ErrorMessage}: {response.StatusCode} - {response.Content}");
         }
     }
 
@@ -81,7 +81,7 @@ public class MediaService
 
         if(!response.IsSuccessful || response.Data?.access_token is null)
         {
-            throw new ApplicationException($"Did not successfully authenticate!  Response: {response.Content}");
+            throw new ReverseGeocodeException($"Did not successfully authenticate!  Response: {response.Content}");
         }
 
         _mediaClient.AddDefaultHeader("authorization", $"Bearer {response.Data.access_token}");

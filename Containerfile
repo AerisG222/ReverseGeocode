@@ -2,8 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
 WORKDIR /reverse-geocode
 
+COPY Directory.Build.props .
 COPY Directory.Packages.props .
 COPY ReverseGeocode.slnx .
+COPY global.json .
 COPY nuget.config .
 COPY src/ReverseGeocode/ReverseGeocode.csproj src/ReverseGeocode/
 RUN dotnet restore \
@@ -21,7 +23,9 @@ RUN dotnet publish \
 
 
 # build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra-amd64
+# console app, so the aspnet shared framework is dead weight.  the non-extra chiseled image is
+# also enough: InvariantGlobalization drops the ICU requirement, and NodaTime carries its own tzdb.
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled-amd64
 WORKDIR /reverse-geocode
 
 COPY --from=build /build .

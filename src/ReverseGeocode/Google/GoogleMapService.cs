@@ -39,12 +39,12 @@ public class GoogleMapService
 
         if (!response.IsSuccessful)
         {
-            throw new ApplicationException(response.ErrorMessage ?? $"Reverse geocode request failed with {response.StatusCode}.");
+            throw new ReverseGeocodeException(response.ErrorMessage ?? $"Reverse geocode request failed with {response.StatusCode}.");
         }
 
         if (response.Data is null)
         {
-            throw new ApplicationException("Reverse geocode request succeeded but returned no content.");
+            throw new ReverseGeocodeException("Reverse geocode request succeeded but returned no content.");
         }
 
         return BuildResult(response.Data);
