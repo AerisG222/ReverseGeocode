@@ -80,7 +80,7 @@ internal sealed class LoadGeocodeDataCommand
                 : Environment.GetEnvironmentVariable(environmentVariable) ?? "";
     }
 
-    protected async override Task<int> ExecuteAsync(
+    public async override Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,
         CancellationToken token = default
