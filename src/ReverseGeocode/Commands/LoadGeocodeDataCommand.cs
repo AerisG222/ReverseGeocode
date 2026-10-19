@@ -34,17 +34,50 @@ internal sealed class LoadGeocodeDataCommand
         [Description("Client Id to use when logging into the Media API")]
         public string ClientId { get; init; } = "";
 
-        [CommandOption("-s|--client-secret", true)]
-        [Description("Client Secret to use when logging into the Media API")]
+        // the two secrets are optional on the command line, and should not be
+        // passed there when the tool runs as a service: every argument of a running
+        // process is readable by any user on the host, through ps or
+        // /proc/<pid>/cmdline.  a process's environment is not - only its own user
+        // and root can read /proc/<pid>/environ - so a deployment supplies these
+        // through the environment variables below, from a file only it can read.
+        // an option, when given, still wins, for running the tool by hand.
+        public const string CLIENT_SECRET_ENV = "REVGEO_CLIENT_SECRET";
+        public const string GOOGLE_API_KEY_ENV = "REVGEO_GOOGLE_API_KEY";
+
+        [CommandOption("-s|--client-secret")]
+        [Description($"Client Secret to use when logging into the Media API.  prefer setting {CLIENT_SECRET_ENV}: an argument is visible to every user on the host")]
         public string ClientSecret { get; init; } = "";
 
         [CommandOption("-u|--media-api-url", true)]
         [Description("URL for the Media API")]
         public string MediaApiUrl { get; init; } = "";
 
-        [CommandOption("-g|--google-api-key", true)]
-        [Description("API key to use when calling Google reverse geocode maps API")]
+        [CommandOption("-g|--google-api-key")]
+        [Description($"API key to use when calling Google reverse geocode maps API.  prefer setting {GOOGLE_API_KEY_ENV}: an argument is visible to every user on the host")]
         public string GoogleApiKey { get; init; } = "";
+
+        public string ResolvedClientSecret => Resolve(ClientSecret, CLIENT_SECRET_ENV);
+        public string ResolvedGoogleApiKey => Resolve(GoogleApiKey, GOOGLE_API_KEY_ENV);
+
+        public override ValidationResult Validate()
+        {
+            if (string.IsNullOrWhiteSpace(ResolvedClientSecret))
+            {
+                return ValidationResult.Error($"A client secret is required: set {CLIENT_SECRET_ENV}, or pass --client-secret.");
+            }
+
+            if (string.IsNullOrWhiteSpace(ResolvedGoogleApiKey))
+            {
+                return ValidationResult.Error($"A Google API key is required: set {GOOGLE_API_KEY_ENV}, or pass --google-api-key.");
+            }
+
+            return ValidationResult.Success();
+        }
+
+        static string Resolve(string option, string environmentVariable) =>
+            !string.IsNullOrWhiteSpace(option)
+                ? option
+                : Environment.GetEnvironmentVariable(environmentVariable) ?? "";
     }
 
     protected async override Task<int> ExecuteAsync(
@@ -55,14 +88,14 @@ internal sealed class LoadGeocodeDataCommand
     {
         try
         {
-            using var mapService = new GoogleMapService(settings.GoogleApiKey, MetadataAdapter.RelevantTypes);
+            using var mapService = new GoogleMapService(settings.ResolvedGoogleApiKey, MetadataAdapter.RelevantTypes);
             using var mediaService = new MediaService(settings.MediaApiUrl);
 
             await mediaService.Login(
                 settings.Auth0LoginUrl,
                 settings.Audience,
                 settings.ClientId,
-                settings.ClientSecret,
+                settings.ResolvedClientSecret,
                 token
             );
 
