@@ -1,5 +1,5 @@
 # build app
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute-amd64 AS build
 WORKDIR /reverse-geocode
 
 COPY Directory.Build.props .
@@ -25,7 +25,7 @@ RUN dotnet publish \
 # build runtime image
 # console app, so the aspnet shared framework is dead weight.  the non-extra chiseled image is
 # also enough: InvariantGlobalization drops the ICU requirement, and NodaTime carries its own tzdb.
-FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled-amd64
+FROM mcr.microsoft.com/dotnet/runtime:11.0-resolute-chiseled-amd64
 WORKDIR /reverse-geocode
 
 COPY --from=build /build .

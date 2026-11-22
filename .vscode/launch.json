@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/ReverseGeocode/bin/Debug/net10.0/ReverseGeocode.dll",
+            "program": "${workspaceFolder}/src/ReverseGeocode/bin/Debug/net11.0/ReverseGeocode.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/ReverseGeocode",
             "stopAtEntry": false
